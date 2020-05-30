@@ -1,6 +1,7 @@
 import React from 'react';
 import Cart from './Cart';
 import Navbar from './Navbar';
+// import Timer from './Timer';
 import * as firebase from 'firebase';
 
 
@@ -59,20 +60,39 @@ class App extends React.Component {
         products,
         loading: false
       })
-  })
+    })
+    
+        //this is for Timer
+        this.interval = setInterval(() => this.tick(), 1000);
   }
+
+  //timer 
+componentWillUnmount(){
+  clearInterval(this.interval);
+}
+  
+  
 handleIncreaseQuantity = (product) => {
     console.log('Hey please increase the qty of ', product);
     const { products } = this.state;
     const index = products.indexOf(product);
 
-    products[index].qty += 1;
+  //   products[index].qty += 1;
 
-  this.setState({
-    //products:products
-    products,
+  // this.setState({
+  //   //products:products
+  //   products,
     
-  });
+  // });
+
+  const docRef = this.db.collection('products').doc(products[index].id);
+
+  docRef.update({
+    qty:products[index].qty + 1
+  })
+    .then(()=> {
+    console.log("Updated Successfully")
+  })
 }
 
 handleDecreaseQuantity = (product) => {
@@ -85,17 +105,35 @@ handleDecreaseQuantity = (product) => {
         return;
     }
 
-    products[index].qty -= 1;
+    // products[index].qty -= 1;
 
-    this.setState({
-        products
+    // this.setState({
+    //     products
+    // })
+    const docRef = this.db.collection('products').doc(products[index].id);
+
+    docRef.update({
+      qty:products[index].qty - 1
+    })
+      .then(()=> {
+      console.log("Updated Successfully")
+      }).catch((error) => {
+        console.log("Error", error);
     })
 }
 handleDeleteProduct = (id) => {
     const { products } = this.state;
-    const items = products.filter((item) => item.id !== id);
+    // const items = products.filter((item) => item.id !== id);
 
-    this.setState({ products: items });
+    // this.setState({ products: items });
+  const docRef = this.db.collection('products').doc(id);
+  docRef
+    .delete()
+  .then(()=> {
+    console.log("Deleted Successfully")
+    }).catch((error) => {
+      console.log("Error", error);
+  })
 }
   getCartCount=()=>{
   const { products } = this.state;
@@ -122,6 +160,16 @@ handleDeleteProduct = (id) => {
     return cartTotal;
   }
 
+  tick() {
+    this.setState(state => ({
+        seconds: state.seconds + 1
+    }));
+}
+
+  timer = () => {
+    this.state = { seconds: 0 };
+  }
+
   addProduct = () => {
     this.db.collection(
       'products'
@@ -144,7 +192,7 @@ handleDeleteProduct = (id) => {
     const { products, loading } = this.state;
     return (
       <div className="App">
-
+        {/* <Timer /> */}
         <Navbar count={this.getCartCount()} />
         <button onClick={this.addProduct}>Add a Product</button>
         <Cart
